@@ -1,0 +1,25 @@
+#!/bin/bash -e
+# <meta property="bt:pubDate" content="1437436800000" />
+# <meta property="bt:modDate" content="1491257347000" />
+# <meta property="bt:subject" content="Landscape" />
+# <meta property="bt:mediums" content="Acrylic" />
+# <meta property="bt:materials" content="Paper, Wood" />
+# <meta property="bt:styles" content="Abstract, Abstract Expressionism, Minimalism, Modern, Fine Art" />
+for url in $(cat urls.csv); do
+echo -n $url";"
+echo -n $(echo $url | sed -r "s;https://www.saatchiart.com/art/Painting-([^\/]*).*;\1;g")
+curl $url 2> /dev/null \
+| grep '<meta property=' \
+| sed -r "s/\r//g" \
+| grep "pubDate\|modDate\|subject\|mediums\|styles\|materials" \
+| sed -r 's/.*bt:([a-z]*).*content="([A-Za-z0-9, ]*)".*/;\1;\2/g' \
+| tr '\n' ' '
+echo ""
+done
+
+#!/bin/bash -e
+csv=./output_clean.csv
+for i in $(cat $csv); do
+date=$(echo $i | awk -F";" '{print $4;}')
+echo $i";"$(date --date=@"${date/000/}")
+done
